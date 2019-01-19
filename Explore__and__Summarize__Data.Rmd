@@ -1,0 +1,494 @@
+---
+title: "Red Wine Quality"
+author: "Abdulrahman Daws"
+date: "January 14, 2019"
+output: html_document
+---
+
+##Sources
+Created by: Paulo Cortez (Univ. Minho), Antonio Cerdeira, Fernando Almeida, Telmo Matos and Jose Reis (CVRVV) @ 2009
+   
+## Past Usage:
+
+  P. Cortez, A. Cerdeira, F. Almeida, T. Matos and J. Reis. 
+  Modeling wine preferences by data mining from physicochemical properties.
+  In Decision Support Systems, Elsevier, 47(4):547-553. ISSN: 0167-9236.
+
+
+```{r , include=FALSE}
+#To Prevent code from appearing in the html page
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Data exploration
+
+``````{r echo=FALSE, message=FALSE, warning=FALSE, pack}
+#Load all pakages that we need
+library(tidyr)
+library(GGally)
+library(tidyverse)
+library(PerformanceAnalytics)
+library(ggplot2)
+library(dplyr)
+library(corrplot)
+library(gridExtra)
+
+```
+
+```{r ,load_Data}
+# Load the Data 
+wine_Reds <- read.csv("C:/Users/abdms/Desktop/wineQualityReds.csv",  row.names = 1, stringsAsFactors = FALSE)
+wine_Reds$quality <- factor(wine_Reds$quality, ordered = TRUE)
+```
+
+# Univariate Plots Section
+
+names | glimpse  of Red Wine Quality Dataset .
+
+```{r,Na}
+names(wine_Reds)
+```
+
+```{r,Gl}
+glimpse(wine_Reds)
+```
+
+As we can see above the  dataset has 1599 rows and 12 columns.
+
+## Quality
+
+```{r ,Quality}
+#To get summary of column like max,mean
+#To get bar chart 
+summary(wine_Reds$quality)
+ggplot(data=wine_Reds,aes(x=quality))+geom_bar()
+```
+
+After we were see the distribution of quality the min is 3 ,max is 8 and the average approximately 6.
+so, we can sort ranking to three :
+low from  (0 to 3) 
+good from (4 to 6)
+very good from (7 to 8)
+
+
+```{r ,Quality Ranking}
+#Using (If ) to make the ranking which we decided above this code
+wine_Reds$ranking <- ifelse(wine_Reds$quality < 4, 'low', ifelse(
+  wine_Reds$quality < 7, 'good', 'very good'))
+wine_Reds$ranking <- ordered(wine_Reds$ranking, levels = c('low', 'good', 'very good'))
+summary(wine_Reds$ranking)
+ggplot(data = wine_Reds, aes(x =ranking, fill = ranking)) +
+  geom_bar() +
+  theme_minimal() +
+  scale_fill_brewer(type = 'seq', palette = 2)
+```
+
+## Fixed Acidity
+
+```{r,FixedAcidity}
+ggplot(data = wine_Reds, aes_q(as.name("fixed.acidity")))+
+    geom_histogram(colour="gray" ,bins=40,fill="darkblue")
+```
+
+
+As we can see in the figure the most wine have fixed acidity between 6 and 9  g/dm^3,also the 
+The mean is 8.32 and the max is 15.90.
+
+
+## Volatile acidity
+
+```{r ,Volatile.acidity}
+ggplot(data = wine_Reds, aes_q(as.name("volatile.acidity")))+
+    geom_histogram(colour="gray" ,bins=40,fill="darkblue")
+```
+
+As we can see in the figure the peak at 0.4,the most wine have fixed acidity between 0.3 and 0.7 g/dm^3 and the mean is 0.52 and the max is 1.58.
+
+
+## Citric acid
+
+```{r ,Citric.acid}
+ggplot(data = wine_Reds, aes_q(as.name("citric.acid")))+
+    geom_histogram(colour="gray" ,bins=40,fill="darkblue")
+```
+
+Most red wine contains  quantity small citric acid.
+The Citric acid exists in greater than in a fruits,the most notably citrus fruits like Lemons.
+The Most red wine have 0 g/dm^3.
+ 
+
+## Residual sugar
+
+```{r ,Residual.sugar}
+ggplot(data = wine_Reds, aes_q(as.name("residual.sugar")))+
+    geom_histogram(colour="gray" ,bins=40,fill="darkblue")
+```
+
+```{r,log10(Residual.sugar)}
+#To see outlliers cleary 
+ggplot(data = wine_Reds, aes_q(as.name("residual.sugar")))+
+    geom_histogram(colour="gray" ,bins=40,fill="darkblue")+scale_x_log10( breaks = 5:9)
+```
+
+As we can see  in the above figure the distribution represent the right skewed.
+The mean is 2.539 g/dm^3  and the max is 15.500 g/dm^3.
+
+
+
+## Chlorides
+
+
+```{r ,Chlorides}
+ggplot(data = wine_Reds, aes_q(as.name("chlorides")))+
+    geom_histogram(colour="gray" ,bins=40,fill="darkblue")
+```
+
+```{r,log10(Chlorides)}
+#To see outlliers cleary 
+ggplot(data = wine_Reds, aes_q(as.name("chlorides")))+
+    geom_histogram(colour="gray" ,bins=40,fill="darkblue")+scale_x_log10( breaks = 0.1:0.7)
+```
+
+As we can see The distribution in chloride is symmetric and we can see the peak at 0.09 g/dm^3
+The mean is 0.08747  g/dm^3.
+
+
+
+## Free sulfur dioxide
+
+
+```{r ,free.sulfur.dioxide}
+ggplot(data = wine_Reds, aes_q(as.name("free.sulfur.dioxide")))+
+    geom_histogram(colour="gray" ,bins=40,fill="darkblue")
+```
+
+As we can see The distribution in free sulfur dioxide s right skewed and we can see the peak at 5 g/dm^3
+The mean is 15.87  g/dm^3.
+
+
+
+## Total sulfur dioxide
+
+
+```{r ,total.sulfur.dioxide}
+ggplot(data = wine_Reds, aes_q(as.name("total.sulfur.dioxide")))+
+    geom_histogram(colour="gray" ,bins=40,fill="darkblue")
+```
+
+As we can see The distribution in total sulfur dioxide is right skewed and we can see the peak betwwen 23 and 24 g/dm^3,The mean is 6.00  g/dm^3 and the max 289.
+
+
+
+## Density
+
+
+```{r ,density}
+ggplot(data = wine_Reds, aes_q(as.name("density")))+
+    geom_histogram(colour="gray" ,bins=40,fill="darkblue")
+```
+
+As we can see The distribution in density is symmetric,
+and we can see the most red wine have density between 0.9950 - 0.9980
+The mean is 0.9967  g/cm^3.
+
+
+## pH
+
+```{r ,pH}
+ggplot(data = wine_Reds, aes_q(as.name("pH")))+
+    geom_histogram(colour="gray" ,bins=40,fill="darkblue")
+```
+
+As we can see  in the above figure the distribution represent symmetric.
+The mean is 3.311  and the max is 4.010.
+
+
+## Sulphates
+
+```{r ,Sulphates}
+ggplot(data = wine_Reds, aes_q(as.name("sulphates")))+
+    geom_histogram(colour="gray" ,bins=40,fill="darkblue")
+```
+
+```{r,log10(sulphates)}
+#To see outlliers cleary 
+ggplot(data = wine_Reds, aes_q(as.name("sulphates")))+
+    geom_histogram(colour="gray" ,bins=40,fill="darkblue")+scale_x_log10( breaks = 1:2)
+```
+
+As we can see The distribution in sulphates is right skewed and we can see the peak betwwen 3.3 and 3.4 ,The mean is 0.6581 g/dm^3 and the max 2 g/dm^3, and there are outliers.  
+
+
+## Alcohol
+
+```{r ,Alcohol}
+ggplot(data = wine_Reds, aes_q(as.name("alcohol")))+
+    geom_histogram(colour="gray" ,bins=40,fill="darkblue")
+```
+
+As we can see The distribution in alcohol is right skewed and we can see the peak betwwen 9.1 and 9,5 ,The mean is 10.42 and the max 14.90 .  
+
+# Univariate Analysis
+
+### What is the structure of your dataset?
+
+There are 12 colums and 1599 rows
+
+
+1599:red wines
+12: components
+
+### What is/are the main feature(s) of interest in your dataset?
+
+In my opinen the main interest is quality,and I will work on the ingredients that improve the quslity of win.
+
+
+### What other features in the dataset do you think will help support your investigation into your feature(s) of interest?
+
+I think (alcohol,volatile.acidity,sulphates) 
+
+
+
+### Did you create any new variables from existing variables in the dataset?
+
+yes,we created variable with name 'ranking' for categorie(low,good,very good).
+
+### Of the features you investigated, were there any unusual distributions? Did you perform any operations on the data to tidy, adjust, or change the form of the data? If so, why did you do this?
+
+There is no distributions unusual just we saw right skewed and symmetric,
+and i thank there is  correlation with the quality of red wine.
+we did not clean or do some change to  dataset.
+
+
+
+
+# Bivariate Plots Section
+
+
+As a starting point let us have a look at a correlation matrix:
+
+
+
+```{r,Correlation Matrix}
+#create Correlation Matrix to see the correlation between the varibles
+acd <- subset(wine_Reds,select=-c(quality,ranking))
+acd <-cor(acd,method = "pearson")
+corrplot(acd)
+```
+
+
+As we can see in the correlation matrix there is positive correlation between density and fixed.acidity ,
+and negative correlation between total.sulfur.dioxide and alcohol ,positive correlation between density and residual.sugar.
+
+
+```{r,plot corr between alcohol and quality}
+#Make a boxplot and the mean by using this code
+ggplot(aes(x = quality, y = alcohol), data = wine_Reds) +
+  geom_point(position = position_jitter(h = 0),colour="darkblue") +
+ geom_boxplot(alpha = 0.5) +
+  scale_colour_brewer(palette = "RdPu") +
+   stat_summary(fun.y ="mean", colour = "red", size=1, geom ="point")
+```
+
+
+
+As we can see in the figure above whenever you higher the alcohol is the higher the quality 
+the correlation  between alcohol and quality  called positive relationship.
+
+```{r,plot corr between volatile.acidity and quality}
+ggplot(aes(x = quality ,y = volatile.acidity), data = wine_Reds) +
+  geom_point(position = position_jitter(h = 0),colour="darkblue") +
+  geom_boxplot(alpha = 0.5) +
+  stat_summary(fun.y = "mean", colour="red",size=1, geom="point")
+  
+```
+
+As we can see in the figure above whenever you lower the volatile.acidity is the higher the qualith 
+the correlation between volatile.acidity and qualith  called inverse relationship.
+
+
+```{r,plot corr between sulphates and quality}
+ggplot(aes(x = quality ,y = sulphates), data = wine_Reds) +
+  geom_point(position = position_jitter(h = 0),colour="darkblue") +
+  geom_boxplot(alpha = 0.5) +
+  stat_summary(fun.y = "mean", colour = "red", size = 1, geom = "point")
+```
+
+As we can see in the figure above whenever you higher the sulphates is the higher the quality 
+the correlation coefficient between sulphates and quality   called positive relationship.
+
+# Bivariate Analysis
+
+
+
+###How did the feature(s) of interest vary with other features in \the dataset?
+
+After  did some analysis we noticed that there is a negative relationship between the quality and volatile.acidity on the other hand we found that there is a positive relationship between  quality and sulphates.
+
+
+### Did you observe any interesting relationships between the other features \(not the main feature(s) of interest)?
+
+Yes, we noticed there is a positive relationship between density and residual.sugar,also between 
+chlorides and density
+
+### What was the strongest relationship you found?
+The quality has the strongest relationship with 
+alcohol.
+
+
+
+# Multivariate Plots Section
+
+```{r,Mul plot corr between alcohol and quality}
+# Make a plot by use the ranking to see the different colors in the distribution
+ggplot(aes(x = quality, y = alcohol), data = wine_Reds) +
+  geom_point(aes(color =ranking,fill = ranking ), position = position_jitter(h = 0)) +scale_colour_brewer(palette = "BuPu")   
+```
+
+```{r,box(Mul plot corr between alcohol and quality)}
+#To see outlliers cleary 
+ggplot(aes(x = quality, y = alcohol), data = wine_Reds) +
+  geom_point(aes(color =ranking,fill = ranking ), position = position_jitter(h = 0)) + geom_boxplot(alpha = 0.5) +
+  scale_colour_brewer(palette = "BuPu")   
+```
+
+As we can see in the figure above the most distribution  was in good and very good ranking between 4.5 and 7.
+
+```{r,Mul plot(ran) between volatile.acidity and quality}
+
+ggplot(aes(x=quality, y=volatile.acidity), data=wine_Reds) +
+  geom_point(aes(color =ranking ),position=position_jitter(h=0)) +
+  scale_colour_brewer(palette = "BuPu")
+```
+
+```{r,Mul box(plot(ran) between volatile.acidity and quality)}
+#To see outlliers cleary 
+ggplot(aes(x=quality, y=volatile.acidity), data=wine_Reds) +
+  geom_point(aes(color =ranking ),position=position_jitter(h=0)) +
+  scale_colour_brewer(palette = "BuPu")   +geom_boxplot(alpha = 0.5) 
+```
+
+As we can see in the figure above the most distribution  was in good ranking between 4.5 and 6.2.
+
+```{r,Mul plot(ran) between sulphates and quality}
+ggplot(aes(x = quality, y = sulphates), data = wine_Reds) +
+  geom_point(aes(color =ranking,fill = ranking ), position = position_jitter(h = 0)) +scale_colour_brewer(palette ="BuPu")
+```
+
+```{r,box(Mul plot(ran) between sulphates and quality)}
+#To see outlliers cleary 
+ggplot(aes(x = quality, y = sulphates), data = wine_Reds) +
+  geom_point(aes(color =ranking,fill = ranking ), position = position_jitter(h = 0)) +geom_boxplot(alpha = 0.5) +
+  scale_colour_brewer(palette ="BuPu")
+```
+
+As we can see in the figure above the most distribution  was in good and very good ranking between 4.5 and 7.
+
+
+### Multivariate  Analysis
+
+
+
+### Were there features that strengthened each other in terms of \looking at your feature(s) of interest?
+
+we found that there are a positive relationship and strong between alcohol and quality and whenever you higher the alcohol is the higher the quality red wine
+
+
+### Were there any interesting or surprising interactions between features?
+
+The total sulfur dioxide  and  Free sulfur dioxide
+has very reverse impact  on red wine quality.
+
+
+
+
+
+# Final Plots and Summary
+
+
+
+
+### Plot One
+```{r ,final&summary p1}
+#To get summary of column like max,mean,..
+#To get bar chart 
+summary(wine_Reds$quality)
+ggplot(data = wine_Reds, aes(x = quality))+geom_bar()+
+ggtitle("Distribution_of_Quality")
+```
+
+
+### Description One
+
+As we can see the most distribution of red wine quality is normal between 5 and 6 .
+
+### Plot Two
+```{r ,final&summary p2}
+#Make a boxplot to see the corr between two varible  
+ggplot(aes(x = quality, y = alcohol), data = wine_Reds) +
+  geom_point(position = position_jitter(h = 0),colour="darkblue") +
+ geom_boxplot(alpha = 0.5) +
+  ggtitle("Quality_&_alcohol")+xlab("Quality")+ylab("alcohol[Percent_by_volume]")+
+  scale_colour_brewer(palette = "RdPu") +
+   stat_summary(fun.y ="mean", colour = "red", size=1, geom ="point")
+```
+
+### Description Two
+
+The correlation coefficient between alcohol and quality is 0.47 and that Indicates  there a positive relationship.
+
+
+### Plot Three
+```{r ,final&summary p3}
+ggplot(aes(x = quality ,y = volatile.acidity), data = wine_Reds) +
+  geom_point(position = position_jitter(h = 0),colour="darkblue") +
+  geom_boxplot(alpha = 0.5) +
+   ggtitle("Quality_&_volatile.acidity")+xlab("Quality")+ylab("volatile.acidity[g/dm^3]")+
+  stat_summary(fun.y ="mean", colour="red", size=1,geom="point")
+```
+
+### Description Three
+
+The correlation coefficient between volatile.acidity and quality is negitive and that Indicates there a reverse relationship.
+ 
+
+# Reflection
+
+In the beginng we chose the Red Wine Quality dataset it's has 1599 kind of wines and 12 variants,then we started understand the variables by do explored every variable.
+
+After that we have some question and tryied to solved  by do correlation matricx and did visualize the relationships between the variables and see if there any relationship.
+
+ We noticed that there is strong positive relastionship between alcohol and quality so, we can say to get red Wine with high Quality  you suppposed we have high alcohol .
+and there some varibles as voilatile.acidity  has reverse relationship.
+
+As we can predict the quality of wine by using alcohol  and voilatile.acidity in case we look for high quality  we will see alcohol  and in case we look for low quality  we will see voilatile.acidity
+
+It is also possible that if we had a dataset and variables  bigger then our dataset on red wine, the analysis would be more accurate to confirm that alcohol increases the quality of red wine.
+
+
+
+###References
+
+https://www.youtube.com/watch?v=1e3PhugevPM
+
+https://www.statmethods.net/graphs/bar.html
+
+http://www.r-graph-gallery.com/41-value-of-the-col-function/
+https://www.youtube.com/watch?v=1e3PhugevPM
+
+https://en.wikipedia.org/wiki/Citric_acid
+
+https://raw.githubusercontent.com/jasminej90/dandp4-explore-and-summarize-data/master/project.html
+
+
+https://www.datamentor.io/r-programming/histogram/
+
+http://dataaspirant.com/2017/10/05/create-histograms-r/
+
+http://www.sthda.com/english/wiki/visualize-correlation-matrix-using-correlogram
+
+https://ggplot2.tidyverse.org/reference/annotation_logticks.html
+
+http://ggplot.yhathq.com/docs/scale_x_log10.html
+
+
